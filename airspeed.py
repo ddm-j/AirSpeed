@@ -81,6 +81,7 @@ def writedata(data, filename):
 
     t1 = time.time()
     df.to_csv('data/{0}.csv'.format(filename))
+    os.system("sync")
     t2 = time.time()
 
     return round(t2 - t1, 4)
