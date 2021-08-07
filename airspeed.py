@@ -21,6 +21,8 @@ def main(args):
     file_name = args.filename if args.filename else datetime.datetime.now().strftime("%m-%d-%Y_%H:%M")
     interval = args.interval if args.interval else 5
     interval_time = time.time() + interval
+    mph = args.mph
+    unit = 'MPH' if mph else 'm/s'
 
     # Initialize Data Structures
     data = {
@@ -31,14 +33,25 @@ def main(args):
     ma_w = [0]
     func = test_func if args.testing else adc.read
 
+
+    cnt = 0
+    vals = []
     for value in func():
+        # Stabilize Voltage Reading
+        if cnt < 20:
+            cnt += 1
+            vals.append(voltage2velocity(value,mph))
+            continue
+        offset = mean(vals)
+
         t = time.time()
         # Check Stopping Criteria
         if time.time() > stop_time:
             break
 
         # Collect Data
-        value = voltage2velocity(value)
+        value = voltage2velocity(value,mph)
+        value = value - offset
         data['time'].append(t)
         data['value'].append(value)
 
@@ -51,7 +64,7 @@ def main(args):
             out = [
                 ['Elapsed', round(time.time()-t0,0), 's'],
                 ['Remaining', round(stop_time-time.time(), 0), 's'],
-                ['Velocity', round(mean(ma_V), 4), 'm/s'],
+                ['Velocity', round(mean(ma_V), 4), unit],
                 ['Write time', round(mean(ma_w), 4), 's']
             ]
             print(tabulate(out,headers=('Quantity', 'Value', 'Units')))
@@ -87,9 +100,12 @@ def writedata(data, filename):
     return round(t2 - t1, 4)
 
 
-def voltage2velocity(value):
+def voltage2velocity(value,mph):
     # Perform Voltage to Velocity Calculation
-    velocity = value
+    velocity = ((2000/1.2)*abs(5*(value/3.3)-5.0/2))**0.5
+
+    if mph:
+        velocity *= 2.23694
 
     return velocity
 
@@ -108,6 +124,9 @@ if __name__ == "__main__":
                         type=int)
     parser.add_argument("--testing",
                         help="Testing mode. Uses random.uniform() as a data generating process instead of reading ADC pin voltage",
+                        action="store_true")
+    parser.add_argument("--mph",
+                        help="Converts velocity values to MPH",
                         action="store_true")
     args = parser.parse_args()
 
