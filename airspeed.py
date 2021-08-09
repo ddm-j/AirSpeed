@@ -40,9 +40,10 @@ def main(args):
         # Stabilize Voltage Reading
         if cnt < 20:
             cnt += 1
-            vals.append(voltage2velocity(value,mph))
+            vals.append(value)
+            #vals.append(voltage2velocity(value,mph))
             continue
-        offset = 0 #mean(vals)
+        offset = mean(vals)
 
         t = time.time()
         # Check Stopping Criteria
@@ -50,8 +51,9 @@ def main(args):
             break
 
         # Collect Data
-        value = voltage2velocity(value,mph)
         value = value - offset
+        value = voltage2velocity(value,mph)
+        #value = value - offset
         data['time'].append(t)
         data['value'].append(value)
 
