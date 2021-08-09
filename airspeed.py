@@ -42,7 +42,7 @@ def main(args):
             cnt += 1
             vals.append(voltage2velocity(value,mph))
             continue
-        offset = mean(vals)
+        offset = 0 #mean(vals)
 
         t = time.time()
         # Check Stopping Criteria
