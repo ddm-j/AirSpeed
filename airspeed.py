@@ -102,7 +102,7 @@ def writedata(data, filename):
 
 def voltage2velocity(value,mph):
     # Perform Voltage to Velocity Calculation
-    velocity = ((2000/1.2)*abs(5*(value/3.3)-5.0/2))**0.5
+    velocity = ((2000/1.2)*abs(5*(value/3.3)-3.3/2))**0.5
 
     if mph:
         velocity *= 2.23694
