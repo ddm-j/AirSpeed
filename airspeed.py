@@ -22,7 +22,16 @@ def main(args):
     interval = args.interval if args.interval else 5
     interval_time = time.time() + interval
     mph = args.mph
-    unit = 'MPH' if mph else 'm/s'
+    P = args.P
+    func = voltage2velocity
+    if P:
+        unit = 'Pa'
+        func = voltage2pressure
+    elif mph:
+        unit = 'MPH'
+    else:
+        unit = 'm/s'
+    
 
     # Initialize Data Structures
     data = {
@@ -51,9 +60,12 @@ def main(args):
             break
 
         # Collect Data
-        value = value - offset
-        value = voltage2velocity(value,mph)
         #value = value - offset
+        value = func(value)
+        
+        if mph:
+            value *= 2.23694
+
         data['time'].append(t)
         data['value'].append(value)
 
@@ -102,14 +114,17 @@ def writedata(data, filename):
     return round(t2 - t1, 4)
 
 
-def voltage2velocity(value,mph):
+def voltage2velocity(value):
     # Perform Voltage to Velocity Calculation
     velocity = ((2000/1.2)*abs(5*(value/3.3)-3.3/2))**0.5
 
-    if mph:
-        velocity *= 2.23694
-
     return velocity
+
+def voltage2pressure(value):
+    # Perform Voltage to Pressure Calculation
+    pressure = 1000*abs(5*(value/3.3)-3.3/2)
+
+    return pressure
 
 
 if __name__ == "__main__":
@@ -129,6 +144,9 @@ if __name__ == "__main__":
                         action="store_true")
     parser.add_argument("--mph",
                         help="Converts velocity values to MPH",
+                        action="store_true")
+    parser.add_argument("--P",
+                        help="Outputs differential pressure, rather than velocity",
                         action="store_true")
     args = parser.parse_args()
 
